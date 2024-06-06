@@ -26,9 +26,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\BLGatewaySourceLibraries\src\BuildingBlocks\IntegrationEventLogEF\IntegrationEventLogEF.csproj" />
-    <ProjectReference Include="..\..\BLGatewaySourceLibraries\src\Common\Events.Common\Events.Common.csproj" />
-    <ProjectReference Include="..\..\BLGatewaySourceLibraries\src\Common\Services.Common\Services.Common.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\IntegrationEventLogEF\IntegrationEventLogEF.csproj" />
+    <ProjectReference Include="..\..\..\Common\Events.Common\Events.Common.csproj" />
+    <ProjectReference Include="..\..\..\Common\Services.Common\Services.Common.csproj" />
   </ItemGroup>
 
 </Project>
