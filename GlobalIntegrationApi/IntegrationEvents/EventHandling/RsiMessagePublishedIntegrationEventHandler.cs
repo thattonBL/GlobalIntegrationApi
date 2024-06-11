@@ -24,7 +24,8 @@ public class RsiMessagePublishedIntegrationEventHandler : IIntegrationEventHandl
     public async Task Handle(RsiMessagePublishedIntegrationEvent @event)
     {
         //TODO Agg try catch around this also what role does IMediator play in the Context????
-        Console.WriteLine($"New RSI PUBLISSHHHED ------  GLOBAAAAALL !!!!!!!!  Integration message submitted: {@event.RsiMessageId}");
+        //Console.WriteLine($"New RSI PUBLISSHHHED ------  GLOBAAAAALL !!!!!!!!  Integration message submitted: {@event.RsiMessageId}");
+        _logger.LogInformation("Global Integration event received: { @event } for Identifier: { @identifier }", @event.GetType(), @event.RsiMessageId);
         await using var transaction = await _globalIntContext.BeginTransactionAsync();
         {
             //TODO could loop through backed up messages here if required???

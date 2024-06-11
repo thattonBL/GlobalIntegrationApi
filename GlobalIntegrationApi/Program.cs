@@ -5,6 +5,7 @@ using GlobalIntegrationApi.IntegrationEvents.Events;
 using GlobalIntegrationApi.Services;
 using IntegrationEventLogEF.Services;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using Services.Common;
 using System.Data.Common;
 
@@ -22,6 +23,8 @@ namespace GlobalIntegrationApi
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            builder.Host.UseSerilog((context, configuration) => configuration.ReadFrom.Configuration(context.Configuration));
 
             //Adds the Event Bus required for integration events
             builder.AddServiceDefaults();
@@ -49,17 +52,18 @@ namespace GlobalIntegrationApi
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
+            //if (app.Environment.IsDevelopment())
+            //{
                 app.UseSwagger();
                 app.UseSwaggerUI();
-            }
+            //}
             app.UseCors("AllowAll");
 
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
 
+            app.UseSerilogRequestLogging();
 
             app.MapControllers();
 
