@@ -2,3 +2,5 @@
 GlobalIntegrationApi/bin
 GlobalIntegrationApi/obj
 obj
+*.user
+GlobalIntegrationApi/Properties/PublishProfiles
