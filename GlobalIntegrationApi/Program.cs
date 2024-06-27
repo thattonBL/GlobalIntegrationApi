@@ -23,6 +23,7 @@ namespace GlobalIntegrationApi
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddSignalR();
 
             builder.Host.UseSerilog((context, configuration) => configuration.ReadFrom.Configuration(context.Configuration));
 
@@ -49,6 +50,18 @@ namespace GlobalIntegrationApi
             builder.Services.AddTransient<NewRsiMessageSubmittedIntegrationEventHandler>();
             builder.Services.AddTransient<NewRsiMessageRecievedIntegrationEventHandler>();
 
+            //builder.Services.AddCors(options =>
+            //{
+            //    options.AddPolicy("AllowSpecificOrigins", builder =>
+            //    {
+            //        builder.WithOrigins("https://localhost:7175")
+            //               .AllowAnyMethod()
+            //               .AllowAnyHeader()
+            //               .AllowCredentials(); // for SignalR
+            //    });
+            //});
+
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -58,6 +71,8 @@ namespace GlobalIntegrationApi
                 app.UseSwaggerUI();
             //}
             app.UseCors("AllowAll");
+
+            //app.UseCors("AllowSpecificOrigins");
 
             app.UseHttpsRedirection();
 
@@ -71,6 +86,8 @@ namespace GlobalIntegrationApi
             eventBus.Subscribe<NewRsiMessageSubmittedIntegrationEvent, NewRsiMessageSubmittedIntegrationEventHandler>(NewRsiMessageSubmittedIntegrationEvent.EVENT_NAME);
             eventBus.Subscribe<NewRsiMessageRecievedIntegrationEvent, NewRsiMessageRecievedIntegrationEventHandler>(NewRsiMessageRecievedIntegrationEvent.EVENT_NAME);
             eventBus.Subscribe<RsiMessagePublishedIntegrationEvent, RsiMessagePublishedIntegrationEventHandler>(RsiMessagePublishedIntegrationEvent.EVENT_NAME);
+
+            app.MapHub<StatusHub>("/statusHub");
 
             app.Run();
         }
