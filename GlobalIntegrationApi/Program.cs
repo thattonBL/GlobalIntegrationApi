@@ -1,5 +1,5 @@
 using EventBus.Abstractions;
-using Events.Common.Events;
+using GlobalIntegrationApi.Hubs;
 using GlobalIntegrationApi.IntegrationEvents.EventHandling;
 using GlobalIntegrationApi.IntegrationEvents.Events;
 using GlobalIntegrationApi.Services;
@@ -50,17 +50,11 @@ namespace GlobalIntegrationApi
             builder.Services.AddTransient<NewRsiMessageSubmittedIntegrationEventHandler>();
             builder.Services.AddTransient<NewRsiMessageRecievedIntegrationEventHandler>();
 
-            //builder.Services.AddCors(options =>
-            //{
-            //    options.AddPolicy("AllowSpecificOrigins", builder =>
-            //    {
-            //        builder.WithOrigins("https://localhost:7175")
-            //               .AllowAnyMethod()
-            //               .AllowAnyHeader()
-            //               .AllowCredentials(); // for SignalR
-            //    });
-            //});
+            var signalRClientUrl = String.IsNullOrEmpty(Environment.GetEnvironmentVariable("CLIENT_BASE_URL")) ? builder.Configuration["ClientUrls:GlobalIntegrationUI"] : Environment.GetEnvironmentVariable("CLIENT_BASE_URL");
 
+            if (String.IsNullOrEmpty(signalRClientUrl)) {
+                throw new Exception("SignalR Client URL not set");
+            }
 
             var app = builder.Build();
 
@@ -70,7 +64,7 @@ namespace GlobalIntegrationApi
                 app.UseSwagger();
                 app.UseSwaggerUI();
             //}
-            app.UseCors("AllowAll");
+            app.UseCors(policy => policy.AllowAnyHeader().AllowAnyMethod().WithOrigins(signalRClientUrl).AllowCredentials());
 
             //app.UseCors("AllowSpecificOrigins");
 
@@ -87,7 +81,7 @@ namespace GlobalIntegrationApi
             eventBus.Subscribe<NewRsiMessageRecievedIntegrationEvent, NewRsiMessageRecievedIntegrationEventHandler>(NewRsiMessageRecievedIntegrationEvent.EVENT_NAME);
             eventBus.Subscribe<RsiMessagePublishedIntegrationEvent, RsiMessagePublishedIntegrationEventHandler>(RsiMessagePublishedIntegrationEvent.EVENT_NAME);
 
-            app.MapHub<StatusHub>("/statusHub");
+            app.MapHub<StatusHub>("statusHub");
 
             app.Run();
         }
