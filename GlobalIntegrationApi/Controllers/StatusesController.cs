@@ -15,11 +15,11 @@ namespace GlobalIntegrationApi.Controllers
             _globalIntegrationServices = globalIntegrationServices;
         }
 
-        [HttpGet("GetStatuses")]
-        public async Task<IActionResult> GetStatuses()
-        {
-            var statuses = await _globalIntegrationServices.GetStatusesAsync();
-            return Ok(statuses);
-        }
+        //[HttpGet("GetStatuses")]
+        //public async Task<IActionResult> GetStatuses()
+        //{
+        //    var statuses = await _globalIntegrationServices.GetStatusesAsync();
+        //    return Ok(statuses);
+        //}
     }
 }
