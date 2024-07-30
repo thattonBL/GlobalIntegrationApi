@@ -36,7 +36,7 @@ namespace GlobalIntegrationApi.IntegrationEvents.EventHandling
         {
             //TODO Agg try catch around this also what role does IMediator play in the Context????
             //Console.WriteLine($"New RSI GLOBAAAAALL !!!!!!!!  INtegration message submitted: {@event.RsiMessage.Identifier}");
-            _logger.LogInformation("Global Integration event received: { @event } for Idebtifier: { @identifier }", @event.GetType(), @event.RsiMessage.Identifier);
+            _logger.LogInformation("Global Integration event received: { @event } for Identifier: { @identifier }", @event.GetType(), @event.RsiMessage.Identifier);
             await using var transaction = await _globalIntContext.BeginTransactionAsync();
             {
                 //TODO could loop through backed up messages here if required???

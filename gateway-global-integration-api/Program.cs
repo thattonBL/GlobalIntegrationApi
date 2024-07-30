@@ -1,3 +1,6 @@
+using Elastic.CommonSchema.Serilog;
+using Elastic.Ingest.Elasticsearch;
+using Elastic.Serilog.Sinks;
 using EventBus.Abstractions;
 using GlobalIntegrationApi.Hubs;
 using GlobalIntegrationApi.IntegrationEvents.EventHandling;
@@ -26,7 +29,18 @@ namespace GlobalIntegrationApi
             builder.Services.AddSwaggerGen();
             builder.Services.AddSignalR();
 
-            builder.Host.UseSerilog((context, configuration) => configuration.ReadFrom.Configuration(context.Configuration));
+            builder.Host.UseSerilog((context, configuration) =>
+            {
+                var httpAccessor = context.Configuration.Get<HttpContextAccessor>();
+                configuration.ReadFrom.Configuration(context.Configuration)
+                             .Enrich.WithEcsHttpContext(httpAccessor)
+                             .Enrich.WithEnvironmentName()
+                             .WriteTo.ElasticCloud(context.Configuration["ElasticCloud:CloudId"], context.Configuration["ElasticCloud:CloudUser"], context.Configuration["ElasticCloud:CloudPass"], opts =>
+                             {
+                                 opts.DataStream = new Elastic.Ingest.Elasticsearch.DataStreams.DataStreamName("gateway-global-int-api-new-logs");
+                                 opts.BootstrapMethod = BootstrapMethod.Failure;
+                             });
+            });
 
             //Adds the Event Bus required for integration events
             builder.AddServiceDefaults();
@@ -42,7 +56,23 @@ namespace GlobalIntegrationApi
             }
 
             builder.Services.AddDbContext<GlobalIntegrationContext>(options => options.UseSqlServer(connectionString));
-            builder.Services.AddScoped<IGlobalDataQueries>(sp => new GlobalDataQueries(connectionString));
+            //builder.Services.AddDbContext<GlobalIntegrationContext>(options =>
+            //{
+            //    options.UseSqlServer(connectionString,
+            //        sqlServerOptionsAction: sqlOptions =>
+            //        {
+            //            sqlOptions.EnableRetryOnFailure(
+            //                            maxRetryCount: 5,
+            //                            maxRetryDelay: TimeSpan.FromSeconds(30),
+            //                            errorNumbersToAdd: null);
+            //        });
+            //});
+
+            builder.Services.AddScoped<IGlobalDataQueries>(sp =>
+            {
+                var logger = sp.GetRequiredService<ILogger<GlobalDataQueries>>();
+                return new GlobalDataQueries(connectionString, logger);
+            });
 
             builder.Services.AddTransient<Func<DbConnection, IIntegrationEventLogService>>(sp => (DbConnection c) => new IntegrationEventLogService(c));
 
