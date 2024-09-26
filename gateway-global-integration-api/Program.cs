@@ -81,6 +81,7 @@ namespace GlobalIntegrationApi
             builder.Services.AddTransient<RsiMessagePublishedIntegrationEventHandler>();
             builder.Services.AddTransient<NewRsiMessageSubmittedIntegrationEventHandler>();
             builder.Services.AddTransient<NewRsiMessageRecievedIntegrationEventHandler>();
+            builder.Services.AddTransient<RequestStatusChangedToCancelledIntegrationEventHandler>();
 
             var signalRClientUrl = String.IsNullOrEmpty(Environment.GetEnvironmentVariable("CLIENT_BASE_URL")) ? builder.Configuration["ClientUrls:GlobalIntegrationUI"] : Environment.GetEnvironmentVariable("CLIENT_BASE_URL");
 
@@ -112,6 +113,7 @@ namespace GlobalIntegrationApi
             eventBus.Subscribe<NewRsiMessageSubmittedIntegrationEvent, NewRsiMessageSubmittedIntegrationEventHandler>(NewRsiMessageSubmittedIntegrationEvent.EVENT_NAME);
             eventBus.Subscribe<NewRsiMessageRecievedIntegrationEvent, NewRsiMessageRecievedIntegrationEventHandler>(NewRsiMessageRecievedIntegrationEvent.EVENT_NAME);
             eventBus.Subscribe<RsiMessagePublishedIntegrationEvent, RsiMessagePublishedIntegrationEventHandler>(RsiMessagePublishedIntegrationEvent.EVENT_NAME);
+            eventBus.Subscribe<RequestStatusChangedToCancelledIntegrationEvent, RequestStatusChangedToCancelledIntegrationEventHandler>(RequestStatusChangedToCancelledIntegrationEvent.EVENT_NAME);
 
             app.MapHub<StatusHub>("statusHub");
 

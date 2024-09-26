@@ -80,6 +80,7 @@ public class GlobalDataQueries : IGlobalDataQueries
                         SELECT * FROM Global_Integration.dbo.IntegrationEventLog
                         WHERE JSON_VALUE(Content, '$.RsiMessageId') LIKE @SearchTerm
                         OR JSON_VALUE(Content, '$.RsiMessage.Identifier') LIKE @SearchTerm
+                        OR JSON_VALUE(Content, '$.Identifier') LIKE @SearchTerm
                         ORDER BY CreationTime DESC";
 
                 var parameters = new { SearchTerm = $"%{msgIdentifier}%" };
@@ -92,7 +93,7 @@ public class GlobalDataQueries : IGlobalDataQueries
                     var eventName = content["EventName"]?.ToString();
                     var creationTime = log.CreationTime.ToString();
                     var appName = content["AppName"]?.ToString() ?? string.Empty;
-                    var identifier = content["RsiMessage"]?["Identifier"]?.ToString() ?? content["RsiMessageId"]?.ToString();
+                    var identifier = content["RsiMessage"]?["Identifier"]?.ToString() ?? content["RsiMessageId"]?.ToString() ?? content["Identifier"]?.ToString();
                     var collectionCode = content["RsiMessage"]?["CollectionCode"]?.ToString() ?? string.Empty;
                     return new Content
                     {
