@@ -22,6 +22,7 @@ steps:
       inlineScript: |
         echo "Updating Azure Container App with the latest image"
         az config set extension.use_dynamic_install=yes_without_prompt
+        
         # Update the Azure Container App to pull the latest image
         az containerapp update \
           --name gateway-global-integration-api-iac
