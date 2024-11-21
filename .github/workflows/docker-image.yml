@@ -1,0 +1,45 @@
+name: Build and Publish Docker Image to Docker Hub and Trigger Azure Release
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Step 2: Login to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+
+      # Step 3: Build the Docker image
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/gateway-global-integration-api:latest -f gateway-global-integration-api/Dockerfile .
+
+      # Step 4: Push Docker image to Docker Hub
+      - name: Push Docker image to Docker Hub
+        run: |
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/gateway-global-integration-api:latest
+
+      # Step 5: Trigger Azure Release Pipeline
+      - name: Trigger Azure DevOps Pipeline
+        uses: Azure/pipelines@v1.2
+        with:
+          azure-devops-project-url: ${{ secrets.AZURE_DEVOPS_PROJECT_URL }}
+          azure-pipeline-name: 'thattonBL.GlobalIntegrationApi'
+          azure-devops-token: ${{ secrets.AZURE_DEVOPS_PAT }}
+      
+      - uses: actions/checkout@v2
