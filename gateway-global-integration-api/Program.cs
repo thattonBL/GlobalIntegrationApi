@@ -1,6 +1,3 @@
-using Elastic.CommonSchema.Serilog;
-using Elastic.Ingest.Elasticsearch;
-using Elastic.Serilog.Sinks;
 using EventBus.Abstractions;
 using GlobalIntegrationApi.Hubs;
 using GlobalIntegrationApi.IntegrationEvents.EventHandling;
@@ -9,6 +6,7 @@ using GlobalIntegrationApi.Queries;
 using GlobalIntegrationApi.Services;
 using IntegrationEventLogEF.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.ApplicationInsights;
 using Serilog;
 using Services.Common;
 using System.Data.Common;
@@ -29,30 +27,24 @@ namespace GlobalIntegrationApi
             builder.Services.AddSwaggerGen();
             builder.Services.AddSignalR();
 
-            builder.Host.UseSerilog((context, configuration) =>
-            {
-                var httpAccessor = context.Configuration.Get<HttpContextAccessor>();
-                configuration.ReadFrom.Configuration(context.Configuration)
-                             .Enrich.WithEcsHttpContext(httpAccessor)
-                             .Enrich.WithEnvironmentName()
-                             .WriteTo.ElasticCloud(context.Configuration["ElasticCloud:CloudId"], context.Configuration["ElasticCloud:CloudUser"], context.Configuration["ElasticCloud:CloudPass"], opts =>
-                             {
-                                 opts.DataStream = new Elastic.Ingest.Elasticsearch.DataStreams.DataStreamName("gateway-global-int-api-new-logs");
-                                 opts.BootstrapMethod = BootstrapMethod.Failure;
-                             });
-            });
+            var appInsightsConnectionString = String.IsNullOrEmpty(Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING")) ? builder.Configuration.GetConnectionString("ApplicationInsightConnectionString") : Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
+
+            // Configure application insight logging
+            builder.Logging.AddApplicationInsights(
+                    configureTelemetryConfiguration: (config) =>
+                    config.ConnectionString = appInsightsConnectionString,
+                    configureApplicationInsightsLoggerOptions: (options) => { }
+                );
+
+            builder.Logging.AddFilter<ApplicationInsightsLoggerProvider>("gatewayGlobalIntegrationAPI", LogLevel.Trace);
 
             //Adds the Event Bus required for integration events
             builder.AddServiceDefaults();
 
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-            var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
-            var dbName = Environment.GetEnvironmentVariable("DB_NAME");
-            var dbPassword = Environment.GetEnvironmentVariable("DB_SA_PASSWORD");
-
-            if (connectionString != null)
+            var connectionString = Environment.GetEnvironmentVariable("SQL_DB_CONNECTION_STRING");
+            if (String.IsNullOrEmpty(connectionString))
             {
-                connectionString = connectionString.Replace("{#host}", dbHost).Replace("{#dbName}", dbName).Replace("{#dbPassword}", dbPassword);
+                connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             }
 
             builder.Services.AddDbContext<GlobalIntegrationContext>(options => options.UseSqlServer(connectionString));
@@ -105,7 +97,7 @@ namespace GlobalIntegrationApi
 
             app.UseAuthorization();
 
-            app.UseSerilogRequestLogging();
+            //app.UseSerilogRequestLogging();
 
             app.MapControllers();
 

@@ -7,3 +7,4 @@ GlobalIntegrationApi/Properties/PublishProfiles
 bin
 BuildingBlocks
 Common
+params.txt

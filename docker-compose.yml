@@ -50,9 +50,10 @@ services:
          - gatewayrabbitmq
          - globalintegrationdb
     environment:
-         - DB_HOST=global-integration-db
-         - DB_NAME=Global_Integration
-         - DB_SA_PASSWORD=password@12345#
+         #- SQL_DB_CONNECTION_STRING=
+         #- APPLICATIONINSIGHTS_CONNECTION_STRING=
+         #- AZURE_SERVICE_BUS_CONNECTION_STRING=
+         #- CLIENT_BASE_URL= 
          - MSG_HOST=gateway-rabbitmq
     networks:
          - gatewaynetwork
