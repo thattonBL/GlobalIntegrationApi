@@ -4,10 +4,10 @@
     <ProjectVersion>2.1</ProjectVersion>
     <DockerTargetOS>Linux</DockerTargetOS>
     <DockerPublishLocally>False</DockerPublishLocally>
-    <ProjectGuid>60906fe8-dce6-4a23-a96d-276ecc01474c</ProjectGuid>
+    <ProjectGuid>69f414d6-b972-4384-8e7c-900755c1e68f</ProjectGuid>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
     <DockerServiceUrl>{Scheme}://localhost:{ServicePort}/swagger</DockerServiceUrl>
-    <DockerServiceName>globalintegrationapi</DockerServiceName>
+    <DockerServiceName>gateway-global-integration-api</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
     <None Include="docker-compose.override.yml">

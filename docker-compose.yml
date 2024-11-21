@@ -9,7 +9,7 @@ volumes:
     driver: local
 
 services:
-   globalintegrationdb:
+  globalintegrationdb:
       container_name: global-integration-db
       image: mcr.microsoft.com/mssql/server:2019-latest
       stdin_open: true
@@ -29,7 +29,7 @@ services:
         start_period: 10s
       volumes:
          - ./globalintegrationdb_data:/docker-entrypoint-initdb.d
-   globalintegrationdb.configurator:
+  globalintegrationdb.configurator:
       image: mcr.microsoft.com/mssql-tools:latest
       container_name: global-integration-db-configurator
       user: root
@@ -41,23 +41,23 @@ services:
       command: bash -c '/opt/mssql-tools/bin/sqlcmd -S global-integration-db -U sa -P password@12345# -i /docker-entrypoint-initdb.d/init.sql; echo "------------------------------ALLLL GLOOOOOBAAAAAAL!!!!---------------------------------";'
       networks:
          - gatewaynetwork
-   globalintegrationapi:
-      container_name: global-integration-api
-      image: GlobalIntegrationApi/Dockerfile
-      build:
-         context: .
-         dockerfile: src/Microservices/GlobalIntegrationApi/Dockerfile
-      depends_on:
+  gateway-global-integration-api:
+    image: ${DOCKER_REGISTRY-}gatewayglobalintegrationapi
+    build:
+      context: .
+      dockerfile: gateway-global-integration-api/Dockerfile
+    depends_on:
          - gatewayrabbitmq
          - globalintegrationdb
-      environment:
-         - DB_HOST=global-integration-db
-         - DB_NAME=Global_Integration
-         - DB_SA_PASSWORD=password@12345#
+    environment:
+         #- SQL_DB_CONNECTION_STRING=
+         #- APPLICATIONINSIGHTS_CONNECTION_STRING=
+         #- AZURE_SERVICE_BUS_CONNECTION_STRING=
+         #- CLIENT_BASE_URL= 
          - MSG_HOST=gateway-rabbitmq
-      networks:
+    networks:
          - gatewaynetwork
-   gatewayrabbitmq:
+  gatewayrabbitmq:
       image: rabbitmq:3.13.1-management
       container_name: gateway-rabbitmq
       ports:

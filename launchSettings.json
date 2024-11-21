@@ -4,7 +4,8 @@
       "commandName": "DockerCompose",
       "commandVersion": "1.0",
       "serviceActions": {
-        "globalintegrationapi": "StartDebugging"
+        "globalintegrationapi": "StartDebugging",
+        "gateway-global-integration-api": "StartDebugging"
       }
     }
   }

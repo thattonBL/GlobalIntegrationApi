@@ -1,6 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using GlobalIntegrationApi.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using System;
 using System.Data;
+using System.Threading.Tasks;
 
 namespace GlobalIntegrationApi
 {
@@ -10,6 +13,21 @@ namespace GlobalIntegrationApi
 
         public GlobalIntegrationContext(DbContextOptions<GlobalIntegrationContext> options) : base(options)
         {
+        }
+
+        public DbSet<IntegrationEventLog>? IntegrationEventLogs { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // Ensure the EventId is the primary key
+            modelBuilder.Entity<IntegrationEventLog>()
+                .HasKey(e => e.EventId);
+
+            modelBuilder.Entity<IntegrationEventLog>()
+            .Property(e => e.Content)
+            .IsUnicode(false);
         }
 
         public IDbContextTransaction GetCurrentTransaction() => _currentTransaction;

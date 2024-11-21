@@ -1,10 +1,15 @@
-﻿using Azure.Core;
-using EventBus.Abstractions;
+﻿using EventBus.Abstractions;
+using GlobalIntegrationApi.Hubs;
 using GlobalIntegrationApi.IntegrationEvents.Events;
 using IntegrationEventLogEF.Services;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
 using System.Data.Common;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace GlobalIntegrationApi.Services;
 
@@ -24,9 +29,17 @@ public class GlobalIntegrationServices : IGlobalIntegrationServices
         _eventLogService = _integrationEventLogServiceFactory(_globalIntContext.Database.GetDbConnection());
         _logger = logger;
     }
+
     public async Task<bool> StopNamedCosumer(string consumerId)
     {
         _logger.LogInformation("Stopping named consumer for for consumerId: { @consumerId }", consumerId);
+       
+        // Send update to SignalR clients
+        //await _hubContext.Clients.All.SendAsync("StoppedNamedConsumer", new
+        //{
+        //    ConsumerId = consumerId
+        //});
+
         var stopConsumerRequestIntegrationEvent = new StopConsumerRequestIntegrationEvent(consumerId);
         await using var transaction = await _globalIntContext.BeginTransactionAsync();
         {
@@ -40,6 +53,13 @@ public class GlobalIntegrationServices : IGlobalIntegrationServices
     public async Task<bool> RestartNamedCosumer(string consumerId)
     {
         _logger.LogInformation("Restarting named consumer for for consumerId: { @consumerId }", consumerId);
+
+        // Send update to SignalR clients
+        //await _hubContext.Clients.All.SendAsync("StoppedNamedConsumer", new
+        //{
+        //    ConsumerId = consumerId
+        //});
+
         var restartConsumerRequestIntegrationEvent = new RestartConsumerRequestIntegrationEvent(consumerId);
         await using var transaction = await _globalIntContext.BeginTransactionAsync();
         {
@@ -49,4 +69,38 @@ public class GlobalIntegrationServices : IGlobalIntegrationServices
         await Task.Run(() => _eventBus.Publish(restartConsumerRequestIntegrationEvent));
         return true;
     }
+
+    // Fetch statuses from the database
+    //public async Task<List<StatusDto>> GetStatusesAsync()
+    //{
+    //    if (_globalIntContext.IntegrationEventLogs == null)
+    //    {
+    //        return new List<StatusDto>();
+    //    }
+
+    //    var logs = await _globalIntContext.IntegrationEventLogs.ToListAsync();
+
+    //    var statuses = logs.Select(log =>
+    //    {
+    //        var content = JObject.Parse(log.Content);
+    //        var eventName = content["EventName"]?.ToString();
+    //        var creationTime = log.CreationTime.ToString();
+    //        var identifier = content["RsiMessage"]?["Identifier"]?.ToString() ?? content["RsiMessageId"]?.ToString();
+    //        var collectionCode = content["RsiMessage"]?["CollectionCode"]?.ToString() ?? string.Empty;
+    //        var transactionId = log.TransactionId;
+
+    //        return new StatusDto
+    //        {
+    //            EventId = log.EventId.ToString(),
+    //            EventName = eventName,
+    //            Identifier = identifier,
+    //            CreationTime = creationTime,
+    //            CollectionCode = collectionCode,
+    //            TransactionId = transactionId
+    //        };
+    //    }).ToList();
+
+    //    return statuses;
+    //}
+
 }
