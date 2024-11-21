@@ -5,6 +5,4 @@ obj
 GlobalIntegrationApi/Properties/PublishProfiles
 *.user
 bin
-BuildingBlocks
-Common
 params.txt
