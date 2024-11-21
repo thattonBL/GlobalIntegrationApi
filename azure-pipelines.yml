@@ -30,5 +30,5 @@ steps:
           --image attonbomb/gateway-global-integration-api:latest
           --registry-server hub.docker.com
 
-        echo "Container App updated successfully"
+        echo "Global Integration API Container App updated successfully"
 
