@@ -4,7 +4,9 @@ using GlobalIntegrationApi.IntegrationEvents.EventHandling;
 using GlobalIntegrationApi.IntegrationEvents.Events;
 using GlobalIntegrationApi.Queries;
 using GlobalIntegrationApi.Services;
+using HealthChecks.UI.Client;
 using IntegrationEventLogEF.Services;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.ApplicationInsights;
 using Serilog;
@@ -75,6 +77,31 @@ namespace GlobalIntegrationApi
             builder.Services.AddTransient<NewRsiMessageRecievedIntegrationEventHandler>();
             builder.Services.AddTransient<RequestStatusChangedToCancelledIntegrationEventHandler>();
 
+            // Add health checks
+            var hcBuilder = builder.Services.AddHealthChecks();
+
+            // Add Global Integration DB health check
+            hcBuilder.AddSqlServer(
+                connectionString,
+                name: "Global Integration DB");
+
+            // Get which message bus is being used and add the relevant health check
+            if (string.Equals(builder.Configuration["EventBus:ProviderName"], "ServiceBus", StringComparison.OrdinalIgnoreCase))
+            {
+                // Add Azure Serice Bus health check
+                hcBuilder.AddAzureServiceBusTopic(
+                    builder.Configuration.GetRequiredConnectionString("EventBus"),
+                    topicName: builder.Configuration["EventBus:HealthCheckTopicName"],
+                    name: "Azure Service Bus");
+            }
+            else
+            {
+                // Add RabbitMQ health check
+                hcBuilder.AddRabbitMQ(
+                    builder.Configuration.GetRequiredConnectionString("EventBus"),
+                    name: "RabbitMQ");
+            }
+
             var signalRClientUrl = String.IsNullOrEmpty(Environment.GetEnvironmentVariable("CLIENT_BASE_URL")) ? builder.Configuration["ClientUrls:GlobalIntegrationUI"] : Environment.GetEnvironmentVariable("CLIENT_BASE_URL");
 
             if (String.IsNullOrEmpty(signalRClientUrl)) {
@@ -108,7 +135,11 @@ namespace GlobalIntegrationApi
             eventBus.Subscribe<RequestStatusChangedToCancelledIntegrationEvent, RequestStatusChangedToCancelledIntegrationEventHandler>(RequestStatusChangedToCancelledIntegrationEvent.EVENT_NAME);
 
             app.MapHub<StatusHub>("statusHub");
-
+            app.MapHealthChecks("/health", new HealthCheckOptions
+            {
+                Predicate = _ => true,
+                ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+            });
             app.Run();
         }
     }
