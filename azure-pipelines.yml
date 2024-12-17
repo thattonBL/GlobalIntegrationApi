@@ -7,22 +7,33 @@ variables:
   AZURE_CONTAINER_APP_NAME: 'gateway-global-integration-api-iac'
   RESOURCE_GROUP: 'Gateway-Resources-IAC'
   DOCKER_IMAGE: 'attonbomb/gateway-global-integration-api:latest'  # Replace with your Docker Hub image path
-
+  AZURE_SUBSCRIPTION: 'Gateway-Resources-IAC-MI-Conn-2'
 steps:
   - task: Docker@2
     inputs:
       command: 'login'
       containerRegistry: 'attonbomb-DockerHub-SC'
+  
+  # Set the Azure subscription based on the branch
+  - script: |
+      echo "Determining Azure subscription..."
+      if [ "$(Build.SourceBranchName)" = "development" ]; then
+        echo "##vso[task.setvariable variable=AZURE_SUBSCRIPTION]Dev-Gateway-Resources-MS"
+        echo "##vso[task.setvariable variable=DOCKER_IMAGE]gateway-global-integration-api:develop"
+      else
+        echo "##vso[task.setvariable variable=AZURE_SUBSCRIPTION]Gateway-Resources-IAC-MI-Conn-2"
+      fi
+    displayName: 'Set Azure Subscription'
 
   - task: AzureCLI@2
     inputs:
-      azureSubscription: 'Gateway-Resources-IAC-MI-Conn-2'
+      azureSubscription: $(AZURE_SUBSCRIPTION)
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
       inlineScript: |
         echo "Updating Azure Container App with the latest image"
         az config set extension.use_dynamic_install=yes_without_prompt
-        
+       
         # Update the Azure Container App to pull the latest image
         az containerapp update \
           --name gateway-global-integration-api-iac
