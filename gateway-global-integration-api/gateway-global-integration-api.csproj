@@ -11,6 +11,8 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Identity" Version="1.11.4" />
+    <PackageReference Include="BL.Gateway.Events.Common" Version="1.0.0" />
+    <PackageReference Include="BL.Gateway.Services.Common" Version="1.0.0" />
     <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="Elastic.Serilog.Sinks" Version="8.11.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.4" />
@@ -33,13 +35,6 @@
     <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="10.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\BuildingBlocks\EventBus\EventBus.csproj" />
-    <ProjectReference Include="..\BuildingBlocks\IntegrationEventLogEF\IntegrationEventLogEF.csproj" />
-    <ProjectReference Include="..\Common\Events.Common\Events.Common.csproj" />
-    <ProjectReference Include="..\Common\Services.Common\Services.Common.csproj" />
   </ItemGroup>
 
 </Project>

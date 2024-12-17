@@ -1,5 +1,5 @@
-﻿using EventBus.Abstractions;
-using Events.Common.Events;
+﻿using BL.Gateway.EventBus.Abstractions;
+using BL.Gateway.Events.Common.Events;
 using GlobalIntegrationApi.Hubs;
 using GlobalIntegrationApi.IntegrationEvents.Events;
 using GlobalIntegrationApi.Queries;

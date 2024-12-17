@@ -1,4 +1,4 @@
-using EventBus.Abstractions;
+using BL.Gateway.EventBus.Abstractions;
 using GlobalIntegrationApi.Hubs;
 using GlobalIntegrationApi.IntegrationEvents.EventHandling;
 using GlobalIntegrationApi.IntegrationEvents.Events;
@@ -7,8 +7,7 @@ using GlobalIntegrationApi.Services;
 using IntegrationEventLogEF.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.ApplicationInsights;
-using Serilog;
-using Services.Common;
+using BL.Gateway.Services.Common;
 using System.Data.Common;
 
 namespace GlobalIntegrationApi

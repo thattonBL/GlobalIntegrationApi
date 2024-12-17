@@ -1,4 +1,4 @@
-﻿using EventBus.Abstractions;
+﻿using BL.Gateway.EventBus.Abstractions;
 using GlobalIntegrationApi.Hubs;
 using GlobalIntegrationApi.IntegrationEvents.Events;
 using GlobalIntegrationApi.Queries;
@@ -6,7 +6,6 @@ using IntegrationEventLogEF.Services;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using System;
 using System.Data.Common;
 
 namespace GlobalIntegrationApi.IntegrationEvents.EventHandling;

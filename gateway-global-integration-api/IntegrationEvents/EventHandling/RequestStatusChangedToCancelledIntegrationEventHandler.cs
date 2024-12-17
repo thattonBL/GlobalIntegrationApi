@@ -1,4 +1,4 @@
-﻿using EventBus.Abstractions;
+﻿using BL.Gateway.EventBus.Abstractions;
 using GlobalIntegrationApi.Hubs;
 using GlobalIntegrationApi.IntegrationEvents.Events;
 using GlobalIntegrationApi.Queries;

@@ -1,5 +1,5 @@
-﻿using Events.Common;
-using Events.Common.Events;
+﻿using BL.Gateway.Events.Common;
+using BL.Gateway.Events.Common.Events;
 
 namespace GlobalIntegrationApi.IntegrationEvents.Events;
 
