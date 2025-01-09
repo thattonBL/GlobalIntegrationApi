@@ -39,4 +39,5 @@ RUN dotnet publish "./gateway-global-integration-api.csproj" -c $BUILD_CONFIGURA
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+LABEL version="1.0.0"
 ENTRYPOINT ["dotnet", "gateway-global-integration-api.dll"]
