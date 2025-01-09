@@ -17,24 +17,76 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Step 2: Login to Docker Hub
+      # Step 2: Set up .NET environment
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0'
+
+      # Step 3: Authenticate with Azure Artifacts
+      - name: Authenticate with Azure Artifacts
+        run: |
+          echo ${{ secrets.AZURE_DEVOPS_PAT }} | dotnet nuget add source --store-password-in-clear-text \
+          --name azure-artifacts https://pkgs.dev.azure.com/BritishLibrary-AppDev/Gateway/_packaging/Gateway_Nuget_Feed/nuget/v3/index.json \
+          --username GitHubActions --password ${{ secrets.AZURE_DEVOPS_PAT }}
+
+      # Step 4: Restore dependencies
+      - name: Restore dependencies for Unit Tests
+        run: dotnet restore Global-Int-API-UnitTests/Global-Int-API-UnitTests.csproj
+
+      # Step 5: Run Unit Tests
+      - name: Run Unit Tests
+        run: dotnet test Global-Int-API-UnitTests/Global-Int-API-UnitTests.csproj --logger "trx;LogFileName=unit-test-results.trx" --results-directory ./TestResults --verbosity normal 
+
+      # Step 6: Restore Dependencies for Functional Tests
+      - name: Restore dependencies for Functional Tests
+        run: dotnet restore Global-Int-API-FunctionalTests/Global-Int-API-FunctionalTests.csproj
+
+      # Step 7: Run Functional Tests
+      - name: Run Functional Tests
+        run: dotnet test Global-Int-API-FunctionalTests/Global-Int-API-FunctionalTests.csproj --logger "trx;LogFileName=functional-test-results.trx" --results-directory ./TestResults --verbosity normal
+
+      # Step 8: List Test Result Files
+      - name: List Test Result Files
+        run: ls -R ./TestResults
+      
+      # Step 9: Upload Test Results with Test Reporter
+      - name: Upload Test Results
+        uses: dorny/test-reporter@v1
+        with:
+          name: Unit and Functional Tests
+          path: ./TestResults/*.trx
+          reporter: dotnet-trx
+
+      # Step 10: Extract the Version tag from the Docker File
+      - name: Extract Version Tag
+        id: extract_version
+        run: |
+          VERSION=$(grep 'LABEL version=' Building33MockApi/Dockerfile | sed 's/.*"\(.*\)"/\1/')
+          echo "VERSION=$VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      # Step 11: Login to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
-      # Step 3: Build the Docker image
+      # Step 12: Build the Docker image
       - name: Build Docker image
         run: |
-          docker build --build-arg AZURE_DEVOPS_PAT=${{ secrets.AZURE_DEVOPS_PAT }} -t ${{ secrets.DOCKER_HUB_USERNAME }}/gateway-global-integration-api:dev -f gateway-global-integration-api/Dockerfile .
+          echo "VERSION=$VERSION"
+          echo "VERSION from GITHUB_ENV is: ${{ env.VERSION }}"
+          docker build --build-arg AZURE_DEVOPS_PAT=${{ secrets.AZURE_DEVOPS_PAT }} -t ${{ secrets.DOCKER_HUB_USERNAME }}/gateway-global-integration-api:dev -t ${{ secrets.DOCKER_HUB_USERNAME }}/gateway-global-integration-api:${{ env.VERSION }} -f gateway-global-integration-api/Dockerfile .
 
-      # Step 4: Push Docker image to Docker Hub
+      # Step 13: Push Docker image to Docker Hub
       - name: Push Docker image to Docker Hub
         run: |
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/gateway-global-integration-api:dev
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/gateway-global-integration-api:${{ env.VERSION }}
 
-      # Step 5: Trigger Azure Release Pipeline
+      # Step 14: Trigger Azure Release Pipeline
       - name: Trigger Azure DevOps Pipeline
         uses: Azure/pipelines@v1.2
         with:

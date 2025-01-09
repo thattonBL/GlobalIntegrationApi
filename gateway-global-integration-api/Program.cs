@@ -96,9 +96,9 @@ namespace GlobalIntegrationApi
             else
             {
                 // Add RabbitMQ health check
-                hcBuilder.AddRabbitMQ(
-                    builder.Configuration.GetRequiredConnectionString("EventBus"),
-                    name: "RabbitMQ");
+                //hcBuilder.AddRabbitMQ(
+                    //builder.Configuration.GetRequiredConnectionString("EventBus"),
+                    //name: "RabbitMQ");
             }
 
             var signalRClientUrl = String.IsNullOrEmpty(Environment.GetEnvironmentVariable("CLIENT_BASE_URL")) ? builder.Configuration["ClientUrls:GlobalIntegrationUI"] : Environment.GetEnvironmentVariable("CLIENT_BASE_URL");
