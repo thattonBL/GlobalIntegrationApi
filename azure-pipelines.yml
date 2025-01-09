@@ -6,7 +6,7 @@ pool:
 variables:
   AZURE_CONTAINER_APP_NAME: 'gateway-global-integration-api-iac'
   RESOURCE_GROUP: 'Gateway-Resources-IAC'
-  DOCKER_IMAGE: 'attonbomb/gateway-global-integration-api:latest'  # Replace with your Docker Hub image path
+  DOCKER_IMAGE: 'attonbomb/gateway-global-integration-api'  # Replace with your Docker Hub image path
   AZURE_SUBSCRIPTION: 'Gateway-Resources-IAC-MI-Conn-2'
 steps:
   - task: Docker@2
@@ -31,15 +31,37 @@ steps:
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
       inlineScript: |
+        
         echo "Updating Azure Container App with the latest image"
+        echo "Updating Azure Container App. The latest image version is ======= $(DOCKER_IMAGE_VERSION)"
+
         az config set extension.use_dynamic_install=yes_without_prompt
        
         # Update the Azure Container App to pull the latest image
         az containerapp update \
           --name gateway-global-integration-api-iac \
           --resource-group Gateway-IAC-Resources \
-          --image $(DOCKER_IMAGE) \
+          --image $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION) \
           --registry-server hub.docker.com
+        
+        # Get the active revision
+        REVISION_NAME=$(az containerapp revision list \
+          --name $(AZURE_CONTAINER_APP_NAME) \
+          --resource-group $(RESOURCE_GROUP) \
+          --query "[?properties.active].name" -o tsv)
+        
+        echo "Active Revision: $REVISION_NAME"
+
+        # Restart to update live deployment if we have an active revision
+        if [ -n "$REVISION_NAME" ]; then
+          az containerapp revision restart \
+            --name $(AZURE_CONTAINER_APP_NAME) \
+            --resource-group $(RESOURCE_GROUP) \
+            --revision $REVISION_NAME
+        else
+          echo "No active revision found"
+          exit 1
+        fi
 
         echo "Global Integration API Container App updated successfully"
 
