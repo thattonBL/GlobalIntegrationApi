@@ -4,7 +4,7 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  AZURE_CONTAINER_APP_NAME: 'gateway-global-integration-api-iac'
+  AZURE_CONTAINER_APP_NAME: 'gateway-global-int-api-iac'
   RESOURCE_GROUP: 'Gateway-Resources-IAC'
   DOCKER_IMAGE: 'attonbomb/gateway-global-integration-api'  # Replace with your Docker Hub image path
   AZURE_SUBSCRIPTION: 'Gateway-Resources-IAC-MI-Conn-2'
@@ -39,7 +39,7 @@ steps:
        
         # Update the Azure Container App to pull the latest image
         az containerapp update \
-          --name gateway-global-integration-api-iac \
+          --name $(AZURE_CONTAINER_APP_NAME) \
           --resource-group Gateway-IAC-Resources \
           --image $(DOCKER_IMAGE):$(DOCKER_IMAGE_VERSION) \
           --registry-server hub.docker.com
@@ -64,4 +64,3 @@ steps:
         fi
 
         echo "Global Integration API Container App updated successfully"
-
