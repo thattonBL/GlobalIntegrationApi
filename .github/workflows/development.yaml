@@ -96,5 +96,6 @@ jobs:
           azure-devops-project-url: ${{ secrets.AZURE_DEVOPS_PROJECT_URL }}
           azure-pipeline-name: 'thattonBL.GlobalIntegrationApi'
           azure-devops-token: ${{ secrets.AZURE_DEVOPS_PAT }}
+          azure-pipeline-variables: '{"DOCKER_IMAGE_VERSION": "${{ env.VERSION }}"}'
       
       - uses: actions/checkout@v2
