@@ -16,7 +16,7 @@
     <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="8.0.1" />
     <PackageReference Include="Azure.Identity" Version="1.11.4" />
     <PackageReference Include="BL.Gateway.Events.Common" Version="1.0.0" />
-    <PackageReference Include="BL.Gateway.Services.Common" Version="1.0.0" />
+    <PackageReference Include="BL.Gateway.Services.Common" Version="1.0.1" />
     <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="Elastic.Serilog.Sinks" Version="8.11.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.4" />
