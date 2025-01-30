@@ -110,6 +110,96 @@ public class GlobalDataQueries : IGlobalDataQueries
         });
     }
 
+    public async Task<IEnumerable<Content>> GetAllAudits()
+    {
+        return await _retryPolicy.ExecuteAsync(async () =>
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                if (connection.State == ConnectionState.Closed)
+                {
+                    try
+                    {
+                        await connection.OpenAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception(ex.Message);
+                    }
+                }
+
+                string query = @"
+                        SELECT *, JSON_VALUE(Content, '$.RsiMessageId') 
+                        FROM Global_Integration.dbo.IntegrationEventLog
+                        ORDER BY CreationTime DESC";
+
+                IEnumerable<IntegrationEventLog> logs = await connection.QueryAsync<IntegrationEventLog>(query);
+
+                return logs.Select(log =>
+                {
+                    var content = JObject.Parse(log.Content);
+                    var eventName = content["EventName"]?.ToString();
+                    var creationTime = log.CreationTime.ToString();
+                    var appName = content["AppName"]?.ToString() ?? string.Empty;
+                    var identifier = content["RsiMessage"]?["Identifier"]?.ToString() ?? content["RsiMessageId"]?.ToString() ?? content["Identifier"]?.ToString();
+                    var collectionCode = content["RsiMessage"]?["CollectionCode"]?.ToString() ?? string.Empty;
+                    var title = content["RsiMessage"]?["Title"]?.ToString() ?? string.Empty;
+                    var author = content["RsiMessage"]?["Author"]?.ToString() ?? string.Empty;
+                    return new Content
+                    {
+                        EventName = eventName,
+                        AppName = appName,
+                        Identifier = identifier,
+                        CollectionCode = collectionCode,
+                        CreationDate = creationTime,
+                        EventId = log.EventId.ToString(),
+                        TransactionId = log.TransactionId,
+                        Title = title,
+                        Author = author,
+                        CreationTime = creationTime,
+                    };
+                });
+            }
+        });
+    }
+
+    public async Task<bool> DeleteEvent(Guid eventId)
+    {
+        return await _retryPolicy.ExecuteAsync(async () =>
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                if (connection.State == ConnectionState.Closed)
+                {
+                    try
+                    {
+                        await connection.OpenAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception($"Failed to open database connection: {ex.Message}", ex);
+                    }
+                }
+
+                string query = @"DELETE FROM Global_Integration.dbo.IntegrationEventLog
+                                 WHERE JSON_VALUE(Content, '$.RsiMessage.Identifier') =
+                                 (SELECT JSON_VALUE(Content, '$.RsiMessage.Identifier')
+                                 FROM Global_Integration.dbo.IntegrationEventLog
+                                 WHERE EventId = @eventId)";
+
+                try
+                {
+                    var rowsAffected = await connection.ExecuteAsync(query, new { EventId = eventId.ToString() });
+                    return rowsAffected > 0;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Error executing delete query: {ex.Message}", ex);
+                }
+            }
+        });
+    }
+
     private bool IsTransient(SqlException ex)
     {
         // Check the exception code and return true if it is transient

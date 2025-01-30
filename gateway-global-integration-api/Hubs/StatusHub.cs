@@ -1,4 +1,5 @@
-﻿using GlobalIntegrationApi.Queries;
+﻿using Events.Common;
+using GlobalIntegrationApi.Queries;
 using GlobalIntegrationApi.Services;
 using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
@@ -33,6 +34,18 @@ public class StatusHub : Hub<INotificationClient>
     public async Task<bool> RestartNamedConsumer(string identifier)
     {
         return await _globalIntegrationServices.RestartNamedCosumer(identifier);
+    }
+    public async Task<bool> PostRsiMessage(RsiPostItem message)
+    {
+        return await _globalIntegrationServices.PostRsiMessage(message);
+    }
+    public async Task<IEnumerable<Content>> GetAllAudits()
+    {
+        return await _globalDataQueries.GetAllAudits();
+    }
+    public async Task<bool> DeleteEvent(Guid eventId)
+    {
+        return await _globalDataQueries.DeleteEvent(eventId);
     }
 }
 
