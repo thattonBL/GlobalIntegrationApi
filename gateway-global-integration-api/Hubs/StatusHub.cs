@@ -39,9 +39,9 @@ public class StatusHub : Hub<INotificationClient>
     {
         return await _globalIntegrationServices.PostRsiMessage(message);
     }
-    public async Task<IEnumerable<Content>> GetAllAudits()
+    public async Task<IEnumerable<Content>> GetAllAudits(string sortColumn, string sortDirection)
     {
-        return await _globalDataQueries.GetAllAudits();
+        return await _globalDataQueries.GetAllAudits(sortColumn, sortDirection);
     }
     public async Task<bool> DeleteEvent(Guid eventId)
     {

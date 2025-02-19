@@ -110,7 +110,7 @@ public class GlobalDataQueries : IGlobalDataQueries
         });
     }
 
-    public async Task<IEnumerable<Content>> GetAllAudits()
+    public async Task<IEnumerable<Content>> GetAllAudits(string sortColumn = "CreationTime", string sortDirection = "DESC")
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
@@ -128,10 +128,35 @@ public class GlobalDataQueries : IGlobalDataQueries
                     }
                 }
 
-                string query = @"
-                        SELECT *, JSON_VALUE(Content, '$.RsiMessageId') 
-                        FROM Global_Integration.dbo.IntegrationEventLog
-                        ORDER BY CreationTime DESC";
+                // Construct the ORDER BY clause based on the sortColumn
+                string orderByClause;
+                switch (sortColumn.ToLower())
+                {
+                    case "title":
+                        orderByClause = "JSON_VALUE(Content, '$.Title')";
+                        break;
+                    case "author":
+                        orderByClause = "JSON_VALUE(Content, '$.Author')";
+                        break;
+                    case "creationdate":
+                        orderByClause = "JSON_VALUE(Content, '$.CreationDate')";
+                        break;
+                    case "collectioncode":
+                        orderByClause = "JSON_VALUE(Content, '$.CollectionCode')";
+                        break;
+                    default:
+                        // Default to sorting by CreationTime if sortColumn is not recognized
+                        orderByClause = "CreationTime";
+                        break;
+                }
+
+                // Add the sort direction
+                orderByClause += $" {sortDirection}";
+
+                string query = $@"
+                SELECT *, JSON_VALUE(Content, '$.RsiMessageId') 
+                FROM Global_Integration.dbo.IntegrationEventLog
+                ORDER BY {orderByClause}";
 
                 IEnumerable<IntegrationEventLog> logs = await connection.QueryAsync<IntegrationEventLog>(query);
 
