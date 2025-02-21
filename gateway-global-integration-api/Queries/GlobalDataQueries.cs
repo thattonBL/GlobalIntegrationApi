@@ -110,7 +110,7 @@ public class GlobalDataQueries : IGlobalDataQueries
         });
     }
 
-    public async Task<IEnumerable<Content>> GetAllAudits(string sortColumn = "CreationTime", string sortDirection = "DESC")
+    public async Task<IEnumerable<Content>> GetAllAudits(string sortColumn, string sortDirection, int pageNumber, int pageSize)
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
@@ -153,10 +153,16 @@ public class GlobalDataQueries : IGlobalDataQueries
                 // Add the sort direction
                 orderByClause += $" {sortDirection}";
 
+                // Calculate the offset for pagination
+                int offset = (pageNumber - 1) * pageSize;
+
+                // Construct the final query with pagination    
                 string query = $@"
-                SELECT *, JSON_VALUE(Content, '$.RsiMessageId') 
-                FROM Global_Integration.dbo.IntegrationEventLog
-                ORDER BY {orderByClause}";
+                    SELECT *, JSON_VALUE(Content, '$.RsiMessageId') 
+                    FROM Global_Integration.dbo.IntegrationEventLog
+                    ORDER BY {orderByClause}, EventId
+                    OFFSET {offset} ROWS
+                    FETCH NEXT {pageSize} ROWS ONLY";
 
                 IEnumerable<IntegrationEventLog> logs = await connection.QueryAsync<IntegrationEventLog>(query);
 
@@ -184,6 +190,32 @@ public class GlobalDataQueries : IGlobalDataQueries
                         CreationTime = creationTime,
                     };
                 });
+            }
+        });
+    }
+
+    public async Task<int> GetTotalRecords()
+    {
+        return await _retryPolicy.ExecuteAsync(async () =>
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                if (connection.State == ConnectionState.Closed)
+                {
+                    try
+                    {
+                        await connection.OpenAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception(ex.Message);
+                    }
+                }
+
+                string query = @"
+                SELECT COUNT(EventId) FROM Global_Integration.dbo.IntegrationEventLog";
+
+                return await connection.ExecuteScalarAsync<int>(query);
             }
         });
     }
