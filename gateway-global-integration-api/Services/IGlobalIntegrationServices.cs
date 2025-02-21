@@ -6,6 +6,8 @@
 
         Task<bool> RestartNamedCosumer(string consumerId);
 
+        Task<bool> PostRsiMessage(RsiPostItem message);
+
         //Task<List<StatusDto>> GetStatusesAsync();
     }
 }

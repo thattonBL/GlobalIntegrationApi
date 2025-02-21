@@ -9,4 +9,7 @@ public record Content
     public string CreationDate { get; init; }
     public string EventId { get; set; }
     public string TransactionId { get; set; }
+    public string Title { get; set; }
+    public string Author { get; set; }
+    public string CreationTime { get; set; }
 }

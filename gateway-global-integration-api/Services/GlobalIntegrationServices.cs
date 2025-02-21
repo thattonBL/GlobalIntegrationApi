@@ -70,6 +70,28 @@ public class GlobalIntegrationServices : IGlobalIntegrationServices
         return true;
     }
 
+    public async Task<bool> PostRsiMessage(RsiPostItem message)
+    {
+        _logger.LogInformation("Rsi message successfully inserted: { @message }", message);        
+
+        var rsiMessageSubmittedIntegrationEvent = new NewRsiMessageSubmittedIntegrationEvent(message, "NewRsiMessageSubmitted.IntegrationEvent");
+
+        await using var transaction = await _globalIntContext.BeginTransactionAsync();
+        {
+            //TODO could loop through backed up messages here if required???
+            await _eventLogService.SaveEventAsync(rsiMessageSubmittedIntegrationEvent, _globalIntContext.GetCurrentTransaction());
+            await _globalIntContext.CommitTransactionAsync(transaction);
+        }
+
+        await Task.Run(() => _eventBus.Publish(rsiMessageSubmittedIntegrationEvent));
+
+        //update the client here
+        var newAuditForId = await _globalDataQueries.GetAuditForIdentifier(message.Identifier);
+        await _hubContext.Clients.All.SendStatusUpdate("SendStatusUpdate", JsonConvert.SerializeObject(newAuditForId));
+
+        return true;
+    }
+
     // Fetch statuses from the database
     //public async Task<List<StatusDto>> GetStatusesAsync()
     //{
